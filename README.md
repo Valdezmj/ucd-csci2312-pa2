@@ -74,4 +74,82 @@ class Point {
 
     };
 ```
+One of the main changes between the first assignment and this assignment was changing the _Point_ class to allow an object to be a point in space of any dimension.  Such (1, 2, 3, 4). 
+This required changing the constructors a bit:
+```c++
+	Point();                                // default constructor
+        Point(int dimensions);                  // Constructor with given dimensions size
+        Point(int dimension, double array[]);  // Constructor with given dimension size and array of values
+        Point(const Point &pt);		       // Copy constructor
+```
+Along with that, instead of storing a constant value for each dimension- we dynamically allocate the dimensions in c++ by writing:
+```c++
+double *dimensions;
+```
+This allows us to change these values to support any different dimension we want.
 
+Almost all the common operators were overloaded to support arithmetic between two points.  Such as:
+_(1, 2, 3) + (3, 2, 1) = (4, 4, 4)_
+
+This exact example would take the declaration of an overloaded function wrriten:
+```c++
+Point &operator+(const Point &ptRightSide);
+```
+More importantly, the example of:
+```c++
+p1 = p2 + p3;
+```
+A key thing to notice in the code above and in the return value of the overloaded example given is that once the arithmetic is preformed between the two points, a point is returned back to the equation which then we see p1 is using the assignment operator ```c++ =``` to assign the newly returned _Point_.
+
+###Cluster Class
+***
+This class acts as a container of _Points_ resembled in a link list.  The header file of this class is:
+```c++
+namespace Clustering {
+    typedef Point * PointPtr;
+
+
+    class Cluster {
+        struct Node;
+        typedef struct Node * NodePtr;
+    public:
+        Cluster();
+
+        // The big three
+        Cluster(const Cluster& clust);
+        Cluster &operator=(const Cluster & clust);
+        Cluster &operator+(const Cluster & rightSide);
+        Cluster &operator-(const Cluster & rightSide);
+        bool operator==(const Cluster & rightSide);
+        Cluster &operator+=(const Cluster & rightSide);
+        Cluster &operator-=(const Cluster & rightSide);
+        Cluster &operator+(Point & point);
+        Cluster &operator-(Point & point);
+
+
+
+        ~Cluster();
+
+        friend std::ostream &operator<<(std::ostream &, const Cluster &);
+        void add(const PointPtr &pt);
+        const PointPtr remove(const PointPtr pt);
+        int size;
+    private:
+         struct Node {
+            PointPtr pt;
+            NodePtr next;
+        };
+        NodePtr head;
+
+    };
+}
+```
+The main goal of this class was to implement a linked list which was:
+```c++
+struct Node {
+            PointPtr pt;
+            NodePtr next;
+        };
+        NodePtr head;
+```
+where ```c++ head ``` acts as the first node in the list.  In each node we see that we have a _Point_ pointer ```c++ PointPtr pt```

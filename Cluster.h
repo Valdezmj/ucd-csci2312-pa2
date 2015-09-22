@@ -18,6 +18,8 @@ namespace Clustering {
         // The big three
         Cluster(const Cluster& clust);
         Cluster &operator=(const Cluster & clust);
+        ~Cluster();
+
         Cluster &operator+(const Cluster & rightSide);
         Cluster &operator-(const Cluster & rightSide);
         bool operator==(const Cluster & rightSide);
@@ -28,7 +30,7 @@ namespace Clustering {
 
 
 
-        ~Cluster();
+
 
         friend std::ostream &operator<<(std::ostream &, const Cluster &);
         void add(const PointPtr &pt);

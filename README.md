@@ -1,7 +1,6 @@
 ## CSCI 2312: Programming Assignment 2
-
+####Attempted with smart pointers
 _working with dynamic memory, linked lists, and overloaded operators_
-
 ***
 
 The main goal of this programming assignment was too expand our knowledge on how to maintain dynamic memory, operate with a linked list and overload operators.

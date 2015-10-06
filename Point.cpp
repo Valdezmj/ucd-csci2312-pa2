@@ -146,10 +146,17 @@ namespace Clustering {
         bool check = false;
 
         for (int i = 0; i < ptLeftSide.getDims(); i++) {
-            if (ptLeftSide.getDimensionValue(i + 1) <= ptRightSide.getDimensionValue(i + 1)) {
+            if (ptLeftSide.getDimensionValue(i + 1) < ptRightSide.getDimensionValue(i + 1)) {
                 check = true;
+                break;
+            } else if (ptLeftSide.getDimensionValue(i + 1) == ptRightSide.getDimensionValue(i + 1)) {
+                if (ptLeftSide.getDimensionValue(i + 2) <= ptRightSide.getDimensionValue(i + 2)) {
+                    check = true;
+                    break;
+                }
             } else {
                 check = false;
+                break;
             }
         }
         return check;
@@ -166,8 +173,6 @@ namespace Clustering {
         for (int i = 0; i < ptLeftSide.getDims(); i++) {
             if (ptLeftSide.getDimensionValue(i + 1) > ptRightSide.getDimensionValue(i + 1)) {
                 check = true;
-            } else {
-                check = false;
             }
         }
         return check;
@@ -182,10 +187,17 @@ namespace Clustering {
         bool check = false;
 
         for (int i = 0; i < ptLeftSide.getDims(); i++) {
-            if (ptLeftSide.getDimensionValue(i + 1) >= ptRightSide.getDimensionValue(i + 1)) {
+            if (ptLeftSide.getDimensionValue(i + 1) > ptRightSide.getDimensionValue(i + 1)) {
                 check = true;
+                break;
+            } else if (ptLeftSide.getDimensionValue(i + 1) == ptRightSide.getDimensionValue(i + 1)) {
+                if (ptLeftSide.getDimensionValue(i + 2) >= ptRightSide.getDimensionValue(i + 2)) {
+                    check = true;
+                    break;
+                }
             } else {
                 check = false;
+                break;
             }
         }
         return check;

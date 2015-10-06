@@ -10,44 +10,36 @@ namespace Clustering {
     }
 
     Clustering::Cluster::Cluster(const Clustering::Cluster &clust) {
-        head = new Node;
-        NodePtr assigneeNode;
-        NodePtr assignNode;
-        NodePtr lastNode;
-        head->pt = new Point(*clust.head->pt);
-        size++;
-
-        assigneeNode = clust.head->next;
-        if (assigneeNode != nullptr) {
-            for (int i = 1; i < size; i++) {
-                if (i == size - 1) {
-                    lastNode = assignNode;
-                    assignNode = new Node;
-                    lastNode->next = assignNode;
-                    assignNode->pt = new Point(*assigneeNode->pt);
-                    size++;
-                    assignNode->next = nullptr;
-                } else {
-                    if (i > 1) {
-                        lastNode = assignNode;
-                    }
-                    assignNode = new Node;
-                    lastNode->next = assignNode;
-                    assignNode->pt = new Point(*assigneeNode->pt);
-                    size++;
-                    assigneeNode = assigneeNode->next;
-                }
+        NodePtr newNode;
+        NodePtr copyNode;
+        NodePtr loopNode;
+        if (clust.head != nullptr) {
+            head = new Node;
+            size = clust.size;
+            copyNode = clust.head;
+            head->pt = copyNode->pt;
+            loopNode = head;
+            copyNode = copyNode->next;
+            for (int i = 1; i < clust.size; i++) {
+                newNode = new Node(copyNode->pt);
+                loopNode->next = newNode;
+                loopNode = loopNode->next;
+                copyNode = copyNode->next;
             }
+            loopNode->next = nullptr;
         } else {
-            head->next = nullptr;
+            head = nullptr;
         }
+
+
     }
 
     void Clustering::Cluster::add(const Clustering::PointPtr &pt) {
+        smartPointPtr tempSmartPt(pt, Release());
         if (size != 0) {
             NodePtr placementFinder;
             NodePtr newNode = new Node;
-            newNode->pt = pt;
+            newNode->pt = tempSmartPt;
 
             if (*newNode->pt >= *head->pt) {
                 if (newNode->pt == head->pt) {
@@ -91,7 +83,7 @@ namespace Clustering {
         } else {
             head = new Node;
             head->next = nullptr;
-            head->pt = pt;
+            head->pt = tempSmartPt;
             size++;
         }
     }
@@ -120,7 +112,9 @@ namespace Clustering {
             nextNode = head->next;
             if (nextNode != nullptr) {
                 for (int i = 0; i < size; i++) {
-                    delete head->pt;
+                    if (head->pt.unique()) {
+                        delete head->pt.get();
+                    }
                     delete head;
                     if (i == size - 1) {
 
@@ -130,40 +124,38 @@ namespace Clustering {
                     }
                 }
             } else {
-                if (head->pt != nullptr) {
-                    delete head->pt;
+                if (head->pt.unique()) {
+                    delete head->pt.get();
                 }
                 delete head;
             }
         }
     }
 
-    const PointPtr Clustering::Cluster::remove(const Clustering::PointPtr pt) {
+    const PointPtr &Clustering::Cluster::remove(const Clustering::PointPtr &pt) {
         NodePtr searchNode = head;
-        NodePtr tempNodePtr;
-        PointPtr tempPointPtr = head->pt;
-        if (head->pt == pt) {
-            tempNodePtr = head;
+        NodePtr tempNodePtr = head;
+        PointPtr tempPt;
+
+        if (head->pt.get() == pt) {
             head = head->next;
-            tempNodePtr->pt = nullptr;
             delete tempNodePtr;
             size--;
-            return tempPointPtr;
+            return pt;
         }
-        while (*searchNode->pt != *pt && searchNode->next != nullptr) {
-            if (*searchNode->next->pt == *pt) {
-                tempPointPtr = searchNode->next->pt;
-                searchNode->next->pt = nullptr;
-                tempNodePtr = searchNode->next;
-                searchNode->next = searchNode->next->next;
-                delete tempNodePtr;
+
+        for (int i = 0; i < size; i++) {
+            if (searchNode->pt.get() == pt) {
+                tempNodePtr->next = searchNode->next;
+                delete searchNode;
                 size--;
-                return tempPointPtr;
+                return pt;
             } else {
+                tempNodePtr = searchNode;
                 searchNode = searchNode->next;
             }
         }
-        return tempPointPtr;
+        return pt;
     }
 
     Cluster &Cluster::operator=(const Cluster &clust) {
@@ -182,11 +174,15 @@ namespace Clustering {
                     secondToLastNode = lastNode;
                     lastNode = lastNode->next;
                 }
-                delete lastNode->pt;
+                if (lastNode->pt.unique()) {
+                    delete lastNode->pt.get();
+                }
                 delete lastNode;
                 secondToLastNode->next = nullptr;
             }
-            delete head->pt;
+            if (head->pt.use_count() == 0) {
+                delete head->pt.get();
+            }
             delete head;
         }
         NodePtr assignNode;
@@ -194,7 +190,7 @@ namespace Clustering {
         size = clust.size;
         head = new Node;
         if (clust.head != nullptr) {
-            head->pt = new Point(*clust.head->pt);
+            head->pt = clust.head->pt;
         } else {
             head = clust.head;
             return *this;
@@ -203,83 +199,82 @@ namespace Clustering {
 
         assigneeNode = clust.head->next;
         for (int i = 1; i < size; i++) {
-            if (i == size - 1) {
-                lastNode = assignNode;
-                assignNode = new Node;
-                lastNode->next = assignNode;
-                assignNode->pt = new Point(*assigneeNode->pt);
-                assignNode->next = nullptr;
-            } else {
+
                 if (i > 1) {
                     lastNode = assignNode;
                 }
                 assignNode = new Node;
                 lastNode->next = assignNode;
-                assignNode->pt = new Point(*assigneeNode->pt);
+                assignNode->pt = assigneeNode->pt;
                 assigneeNode = assigneeNode->next;
-            }
         }
         return *this;
     }
 
-    Cluster &Cluster::operator+(const Cluster &rightSide) {
+    const Cluster Cluster::operator+(const Cluster &rightSide) {
         if (*this == rightSide) {
             return *this;
         }
 
-        Cluster * newCluster = new Cluster();
-        NodePtr nodeCheckSetOne = head;
+        Cluster * newCluster = new Cluster(*this);
         NodePtr nodeCheckSetTwo = rightSide.head;
         NodePtr checkNewListNode;
-
-        for (int i = 0; i < size; i++) {
-            newCluster->add(nodeCheckSetOne->pt);
-
-            if (nodeCheckSetOne->next != nullptr) {
-                nodeCheckSetOne = nodeCheckSetOne->next;
-            }
-        }
-
+        NodePtr addingPoint;
         checkNewListNode = newCluster->head;
+        bool check = true;
 
         for (int i = 0; i < rightSide.size; i++) {
-
             for (int j = 0; j < newCluster->size; j++) {
-
-                if (*nodeCheckSetTwo->pt != *checkNewListNode->pt) {
-                    newCluster->add(nodeCheckSetTwo->pt);
+                if (nodeCheckSetTwo->pt == checkNewListNode->pt) {
+                    check = false;
                     break;
-                } else {
                 }
                 checkNewListNode = checkNewListNode->next;
             }
-
-            if (nodeCheckSetTwo->next != nullptr) {
-                nodeCheckSetTwo = nodeCheckSetTwo->next;
+            if (check) {
                 checkNewListNode = newCluster->head;
-            }
-        }
+                if (*checkNewListNode->pt <= *nodeCheckSetTwo->pt) {
+                    addingPoint = new Node(nodeCheckSetTwo->pt);
+                    addingPoint->next = newCluster->head;
+                    newCluster->head = addingPoint;
+                } else {
+                    for (int j = 0; j < newCluster->size; j++) {
+                        if (*checkNewListNode->pt > *nodeCheckSetTwo->pt) {
+                            if (checkNewListNode->next == nullptr) {
+                                addingPoint = new Node(nodeCheckSetTwo->pt);
+                                checkNewListNode->next = addingPoint;
+                                break;
+                            }
+                            if (*checkNewListNode->next->pt <= *nodeCheckSetTwo->pt) {
+                                addingPoint = new Node(nodeCheckSetTwo->pt);
+                                addingPoint->next = checkNewListNode->next;
+                                checkNewListNode->next = addingPoint;
+                                break;
+                            }
 
+                        }
+                        checkNewListNode = checkNewListNode->next;
+                        //addingPoint = addingPoint->next;
+                    }
+                }
+                newCluster->size++;
+            }
+            nodeCheckSetTwo = nodeCheckSetTwo->next;
+            checkNewListNode = newCluster->head;
+            check = true;
+        }
         return *newCluster;
     }
-    Cluster &Cluster::operator-(const Cluster &rightSide) {
 
-        Cluster * newCluster = new Cluster();
+    const Cluster Cluster::operator-(const Cluster &rightSide) {
         if (*this == rightSide) {
-            return *newCluster;
+            return *this;
         }
-        NodePtr nodeCheckSetOne = head;
+
+        Cluster * newCluster = new Cluster(*this);
         NodePtr nodeCheckSetTwo = rightSide.head;
         NodePtr checkNewListNode;
-
-        for (int i = 0; i < size; i++) {
-            newCluster->add(nodeCheckSetOne->pt);
-
-            if (nodeCheckSetOne->next != nullptr) {
-                nodeCheckSetOne = nodeCheckSetOne->next;
-            }
-        }
-
+        NodePtr removeNode;
         checkNewListNode = newCluster->head;
 
         for (int i = 0; i < rightSide.size; i++) {
@@ -287,17 +282,14 @@ namespace Clustering {
             for (int j = 0; j < newCluster->size; j++) {
 
                 if (*nodeCheckSetTwo->pt == *checkNewListNode->pt) {
-                    newCluster->remove(nodeCheckSetTwo->pt);
+                    newCluster->remove(nodeCheckSetTwo->pt.get());
                     break;
-                } else {
                 }
                 checkNewListNode = checkNewListNode->next;
             }
 
-            if (nodeCheckSetTwo->next != nullptr) {
                 nodeCheckSetTwo = nodeCheckSetTwo->next;
                 checkNewListNode = newCluster->head;
-            }
         }
 
         return *newCluster;
@@ -310,7 +302,7 @@ namespace Clustering {
         NodePtr nodeCheckSetOne = head;
         NodePtr nodeCheckSetTwo = rightSide.head;
         for (int i = 0; i < size; i++) {
-            if (nodeCheckSetOne->pt != nodeCheckSetTwo->pt) {
+            if (nodeCheckSetOne->pt.get() != nodeCheckSetTwo->pt.get()) {
                 return false;
             }
             nodeCheckSetOne = nodeCheckSetOne->next;
@@ -326,6 +318,7 @@ namespace Clustering {
         *this = (*this + rightSide);
         return *this;
     }
+
     Cluster &Cluster::operator-=(const Cluster &rightSide) {
         if (this == &rightSide) {
             return *this;
@@ -334,13 +327,30 @@ namespace Clustering {
         return *this;
     }
 
-    Cluster &Cluster::operator+(Point &point) {
+    const Cluster Cluster::operator+(const PointPtr &point) {
+        Cluster * newCluster = new Cluster(*this);
+
+        newCluster->add(point);
+        return *newCluster;
+    }
+
+    const Cluster Cluster::operator-(const PointPtr &point) {
+        Cluster *newCluster = new Cluster(*this);
+
+        newCluster->remove(point);
+        return *newCluster;
+    }
+
+    Cluster &Cluster::operator+=(const Point &rhs) {
+        smartPointPtr tempNode(new Point(rhs));
         if (size != 0) {
             NodePtr placementFinder;
-            NodePtr newNode = new Node;
-            newNode->pt = &point;
+            NodePtr newNode = new Node(tempNode);
 
             if (*newNode->pt >= *head->pt) {
+                if (newNode->pt == head->pt) {
+                    return *this;
+                }
                 newNode->next = head;
                 head = newNode;
                 size++;
@@ -354,8 +364,11 @@ namespace Clustering {
             }
             placementFinder = head;
             while (placementFinder->next != nullptr) {
+                if (newNode->pt == placementFinder->pt) {
+                    return *this;
+                }
                 if (*newNode->pt < *placementFinder->pt) {
-                    if (*newNode->pt >= *(placementFinder->next)->pt) {
+                    if (*newNode->pt >= *(placementFinder->next)->pt && newNode->pt != placementFinder->pt) {
                         newNode->next = (placementFinder->next);
                         placementFinder->next = newNode;
                         break;
@@ -366,44 +379,42 @@ namespace Clustering {
                     } else {
                         placementFinder = placementFinder->next;
                     }
-                } else if (*newNode->pt >= *placementFinder->pt) {
+                } else if (*newNode->pt >= *placementFinder->pt && newNode->pt != placementFinder->pt) {
                     newNode->next = placementFinder;
                     head->next = newNode;
                     break;
                 }
             }
             size++;
+            return *this;
         } else {
             head = new Node;
             head->next = nullptr;
-            head->pt = &point;
+            head->pt = tempNode;
             size++;
-        }
-        return *this;
-
-    }
-
-    Cluster &Cluster::operator-(Point &point) {
-        NodePtr searchNode = head;
-        NodePtr tempNode;
-        if (point == *searchNode->pt) {
-            delete searchNode->pt;
-            searchNode->pt = nullptr;
-            head = head->next;
-            delete searchNode;
             return *this;
         }
-        while (*searchNode->pt != point && searchNode->next != nullptr) {
-            if (*searchNode->next->pt == point) {
-                delete searchNode->next->pt;
-                searchNode->next->pt = nullptr;
-                tempNode = searchNode->next;
-                searchNode->next = searchNode->next->next;
-                delete tempNode;
-                size--;
-                return *this;
+    }
+
+    Cluster &Cluster::operator-=(const Point &rhs) {
+        NodePtr loopNodeFirst, loopNodeSecond;
+        loopNodeSecond = head;
+        for (int i = 0; i < size; i++) {
+            if (*loopNodeSecond->pt == rhs) {
+                if (loopNodeSecond == head) {
+                    loopNodeFirst = loopNodeSecond;
+                    loopNodeSecond = loopNodeSecond->next;
+                    delete loopNodeFirst;
+                    size--;
+                } else {
+                    loopNodeFirst->next = loopNodeSecond->next;
+                    delete loopNodeSecond;
+                    loopNodeSecond = loopNodeFirst->next;
+                    size--;
+                }
             } else {
-                searchNode = searchNode->next;
+                loopNodeFirst = loopNodeSecond;
+                loopNodeSecond = loopNodeSecond->next;
             }
         }
         return *this;

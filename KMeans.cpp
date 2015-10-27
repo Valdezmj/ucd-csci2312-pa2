@@ -16,80 +16,77 @@ namespace Clustering {
         SCORE_DIFF_THRESHOLD = __thresh;
         __ps = new Cluster(__pd);
         readFile();
-        __ps->pickPoints(__size, __centroids);
-        __ps->setCentroid(*__centroids[0]);
+        __ps->pickPoints(__size - 1, __centroids);
         if (__i > 1) {
             createClusters();
         }
     }
 
     void Clustering::KMeans::start() {
-        assignPointsIntially();
         __ps->computeCentroid();
-        for (int i = 0; i < __size - 1; i++) {
-            __cl[i].computeCentroid();
-        }
+        if (__size > 1) {
+            __sd = SCORE_DIFF_THRESHOLD + 1;
+            __s = 0;
 
-        __sd = SCORE_DIFF_THRESHOLD + 1;
+            while (__sd >= SCORE_DIFF_THRESHOLD) {
+                //loop through clusters
+                Cluster::Move *it;
+                double __disMin, __temp;
+                Cluster *__closestCentroid = nullptr;
 
-        while (__sd >= SCORE_DIFF_THRESHOLD) {
-            //loop through clusters
-            Cluster::Move *it;
-            double __disMin, __temp;
-            Cluster *__closestCentroid = nullptr;
-
-            for (int i = 0; i < __ps->getSize(); i++) {
-                __disMin = (*__ps)[i]->distanceTo(__ps->getCentroid());
-                for (int j = 0; j < __size - 1; j++) {
-                    __temp = (*__ps)[i]->distanceTo(__cl[j].getCentroid());
-                    if (__temp < __disMin) {
-                        __disMin = __temp;
-                        __closestCentroid = (__cl + j);
-                    }
-
-                }
-
-                if (__closestCentroid != nullptr && __closestCentroid->getCentroid() != __ps->getCentroid()) {
-                    it = new Cluster::Move((*__ps)[i], __ps, __closestCentroid);
-                    it->perform();
-                    delete it;
-                    i--;
-                }
-                __closestCentroid = nullptr;
-            }
-
-            __closestCentroid = nullptr;
-
-            for (int i = 0; i < __size - 1; i++) {
-                for (int j = 0; j < __cl[i].getSize(); j++) {
-                    __disMin = __cl[i][j]->distanceTo(__cl[i].getCentroid());
-                    for (int k = i + 1; k < __size - 1; k++) {
-                        __temp = __cl[i][j]->distanceTo(__cl[k].getCentroid());
+                for (int i = 0; i < __ps->getSize(); i++) {
+                    __disMin = (*(*__ps)[i]).distanceTo(__ps->getCentroid());
+                    for (int j = 0; j < __size - 1; j++) {
+                        __temp = (*(*__ps)[i]).distanceTo(__cl[j].getCentroid());
                         if (__temp < __disMin) {
                             __disMin = __temp;
-                            __closestCentroid = (__cl + k);
+                            __closestCentroid = &__cl[j];
                         }
+
                     }
-                    if (__closestCentroid != nullptr && __closestCentroid->getCentroid() != __cl[i].getCentroid()) {
-                        it = new Cluster::Move(__cl[i][j], &__cl[i], __closestCentroid);
+
+                    if (__closestCentroid != nullptr && __closestCentroid->getCentroid() != __ps->getCentroid()) {
+                        it = new Cluster::Move((*__ps)[i], __ps, __closestCentroid);
                         it->perform();
                         delete it;
-                        j--;
+                        i--;
                     }
                     __closestCentroid = nullptr;
                 }
-            }
 
-            if (!__ps->checkCentroid()) {
-                __ps->computeCentroid();
-            }
-            for (int i = 0; i < __size - 1; i++) {
-                if (!__cl[i].checkCentroid()) {
-                    __cl[i].computeCentroid();
+                __closestCentroid = nullptr;
+
+                for (int i = 0; i < __size - 1; i++) {
+                    for (int j = 0; j < __cl[i].getSize(); j++) {
+                        __disMin = __cl[i][j]->distanceTo(__cl[i].getCentroid());
+                        for (int k = i + 1; k < __size - 1; k++) {
+                            __temp = __cl[i][j]->distanceTo(__cl[k].getCentroid());
+                            if (__temp < __disMin) {
+                                __disMin = __temp;
+                                __closestCentroid = &__cl[k];
+                            }
+                        }
+                        if (__closestCentroid != nullptr && __closestCentroid->getCentroid() != __cl[i].getCentroid()) {
+                            it = new Cluster::Move(__cl[i][j], &__cl[i], __closestCentroid);
+                            it->perform();
+                            delete it;
+                            j--;
+                        }
+                        __closestCentroid = nullptr;
+                    }
                 }
+
+                if (!__ps->checkCentroid()) {
+                    __ps->computeCentroid();
+                }
+                for (int i = 0; i < __size - 1; i++) {
+                    if (!__cl[i].checkCentroid()) {
+                        __cl[i].computeCentroid();
+                    }
+                }
+                __sd = std::abs(__s - computeClusteringScore());
+                __s = computeClusteringScore();
             }
-            __sd = std::abs(__s - computeClusteringScore());
-            __s = computeClusteringScore();
         }
         writeFile();
     }
@@ -104,37 +101,11 @@ namespace Clustering {
 
     void Clustering::KMeans::createClusters() {
         __cl = new Cluster[__size - 1];
-        Cluster::Move *__mfc;
-        Cluster *__t, *__f;
-        PointPtr __pt;
 
         for (int i = 0; i < __size - 1; i++) {
             __cl[i].setPointDimension(__ps->getPointDimension());
             __cl[i].setCentroid(*__centroids[i]);
-        }
-    }
 
-    void Clustering::KMeans::assignPointsIntially() {
-        Cluster::Move *it;
-        double __disMin, __temp;
-        Cluster *__closestCentroid = nullptr;
-        for (int i = 0; i < __ps->getSize(); i++) {
-            __disMin = (*__ps)[i]->distanceTo(__ps->getCentroid());
-            for (int j = 0; j < __size - 1; j++) {
-                __temp = (*__ps)[i]->distanceTo(__cl[j].getCentroid());
-                if (__temp < __disMin) {
-                    __disMin = __temp;
-                    __closestCentroid = (__cl + j);
-                }
-
-            }
-
-            if (__closestCentroid != nullptr && __closestCentroid->getCentroid() != __ps->getCentroid()) {
-                it = new Cluster::Move((*__ps)[i], __ps, __closestCentroid);
-                it->perform();
-                delete it;
-                i--;
-            }
         }
     }
 
@@ -159,7 +130,11 @@ namespace Clustering {
             }
         }
 
-        __bCV = (__dIn / __pIn) / (__dOut / __pOut);
+        if (__size != 1) {
+            __bCV = (__dIn / __pIn) / (__dOut / __pOut);
+        } else {
+            __bCV = 0;
+        }
         return __bCV;
     }
 
@@ -173,5 +148,11 @@ namespace Clustering {
         }
 
         file.close();
+    }
+
+    KMeans::~KMeans() {
+        delete [] __cl;
+        delete __ps;
+        delete [] __centroids;
     }
 }

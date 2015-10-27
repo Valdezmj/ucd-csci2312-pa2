@@ -92,6 +92,7 @@ namespace Clustering {
             void perform() {__to->add(__from->remove(__pt));}
         };
 
+        unsigned int __id;
 
     private:
         unsigned int size;
@@ -100,7 +101,6 @@ namespace Clustering {
         unsigned int pointDimensions;
 
         static unsigned int __idGenerator;
-        unsigned int __id;
 
         struct Node {
             PointPtr pt;

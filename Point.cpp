@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <MacTypes.h>
+#include <algorithm>
 
 // Default constructor
 // Initializes dim to 0
@@ -79,7 +80,7 @@ namespace Clustering {
         double distance = 0.0;
 
         for (int i = 0; i < dim; i++) {
-            distance += pow((pt.getDimensionValue(i + 1) - dimensions[i]), 2);
+            distance += pow((pt.dimensions[i] - dimensions[i]), 2);
         }
         distance = sqrt(distance);
 
@@ -231,7 +232,7 @@ namespace Clustering {
             return *this;
         }
 
-        Point *addedPoint = new Point(*this);
+        Point * addedPoint = new Point(*this);
 
         for (int i = 0; i < dim; i++) {
             addedPoint->dimensions[i] = addedPoint->dimensions[i] + ptRightSide.getDimensionValue(i + 1);
@@ -247,8 +248,7 @@ namespace Clustering {
             return *this;
         }
 
-        Point *addedPoint = new Point(*this);
-
+        Point * addedPoint = new Point(*this);
         for (int i = 0; i < dim; i++) {
             addedPoint->dimensions[i] = addedPoint->dimensions[i] - ptRightSide.getDimensionValue(i + 1);
         }
@@ -263,7 +263,7 @@ namespace Clustering {
             return *this;
         }
 
-        Point *addedPoint = new Point(*this);
+        Point * addedPoint = new Point(*this);
 
         for (int i = 0; i < dim; i++) {
             addedPoint->dimensions[i] = addedPoint->dimensions[i] * numberToMultiplyBy;
@@ -279,7 +279,7 @@ namespace Clustering {
             return *this;
         }
 
-        Point *addedPoint = new Point(*this);
+        Point * addedPoint = new Point(*this);
 
         for (int i = 0; i < dim; i++) {
             addedPoint->dimensions[i] = addedPoint->dimensions[i] / numberToDivideBy;

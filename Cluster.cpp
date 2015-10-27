@@ -20,11 +20,17 @@ namespace Clustering {
         size = 0;
         head = nullptr;
     }
-    Clustering::Cluster::Cluster(unsigned int i) : Cluster() {
+    Clustering::Cluster::Cluster(unsigned int i) {
+        __id = __idGenerator;
+        Cluster::__idGenerator++;
+        __centroid = nullptr;
+        __centroidValid = false;
+        size = 0;
+        head = nullptr;
         pointDimensions = i;
     }
 
-    Clustering::Cluster::Cluster(const Clustering::Cluster &__cl) : Cluster(__cl.pointDimensions) {
+    Clustering::Cluster::Cluster(const Clustering::Cluster &__cl) {
         NodePtr __n;
         NodePtr __c;
         NodePtr __l;
@@ -362,8 +368,6 @@ namespace Clustering {
         std::stringstream streamToPoint;
         streamToPoint.str(line);
 
-        // Count how many dimensions we have by counting how many commas - 1 we have in the string.
-
         // Create our new point
         Point newPoint((int)cluster.pointDimensions);
 
@@ -392,7 +396,7 @@ namespace Clustering {
                 *__centroid += *__n->pt;
                 __n = __n->next;
             }
-            *__centroid /= (double)size;
+            *__centroid /= (int)size;
         } /*else {
             __centroid = nullptr;
             __centroidValid = false;
@@ -410,34 +414,18 @@ namespace Clustering {
         if (head != nullptr) {
             int __s, __inc, __pp;
             // Decide a good starting point to pick points
-            if (k == 1) {
-                if (size > 2) {
-                    __s = size / 2;
-                    __inc = 1 * (size / 2);
-                } else {
-                    __s = 0;
-                    __inc = 1;
-                }
-            } else if (k > size) {
-                if (size > 2) {
-                    __s = size / 3;
-                    __inc = 1 * (size / 3);
-                } else if (size == 1) {
-                    __s = 0;
-                    __inc = 1;
-                }
-            } else if (size > k) {
-                __s = (int)std::floor(size / k);
-                __inc = (int)std::floor(size / k);
-            } else if (size == k) {
-                __s = (int)std::floor(size / 2);
-                __inc = (int)std::floor(size / 2);
+            if (size < 2) {
+                __s = 0;
+                __inc = 1;
+            } else {
+                __s = 1;
+                __inc = 2;
             }
 
             __pp = 0;
             for (int i = __s; i < size; i += __inc) {
-                pointArray[__pp] = (*this)[i];
                 if (__pp < k) {
+                    pointArray[__pp] = (*this)[i];
                     __pp++;
                 }
             }
@@ -452,6 +440,7 @@ namespace Clustering {
                 }
             }
         }
+
     }
 
     double Cluster::intraClusterDistance() const {

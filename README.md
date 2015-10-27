@@ -6,7 +6,9 @@ Going from PA2 to PA3 there has been some major changes in how to use the _Clust
 
 As always, starting with the Point class, lets take a look at how one can instantiate a Point object. 
 
-###Creating a Point Object
+### Point Class
+***
+#### Creating a Point Object
 ```c++
 int main() {
    //Creating a point with dimensions

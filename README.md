@@ -144,89 +144,107 @@ The standard comparisons between points can be applied.  Comparing each dimensio
 
 _Note: if dimensions aren't the same, false will always be returned_
 
-### Cluster Class
-***
-One of the main changes between the first assignment and this assignment was changing the _Point_ class to allow an object to be a point in space of any dimension.  Such (1, 2, 3, 4). 
-This required changing the constructors a bit:
+#### stream operators
 ```c++
-	Point();                                // default constructor
-        Point(int dimensions);                  // Constructor with given dimensions size
-        Point(int dimension, double array[]);  // Constructor with given dimension size and array of values
-        Point(const Point &pt);		       // Copy constructor
-```
-Along with that, instead of storing a constant value for each dimension- we dynamically allocate the dimensions in c++ by writing:
-```c++
-double *dimensions;
-```
-This allows us to change these values to support any different dimension we want.
+int main() {
+   double ptArray1[3] = {1, 2, 3};
+   Point pt1(3, ptArray1);
 
-Almost all the common operators were overloaded to support arithmetic between two points.  Such as:
-_(1, 2, 3) + (3, 2, 1) = (4, 4, 4)_
+   double ptArray2[3] = {3, 4, 5};
+   Point pt2(3, ptArray2);
 
-This exact example would take the declaration of an overloaded function wrriten:
-```c++
-Point &operator+(const Point &ptRightSide);
-```
-More importantly, the example of:
-```c++
-p1 = p2 + p3;
-```
-A key thing to notice in the code above and in the return value of the overloaded example given is that once the arithmetic is preformed between the two points, a point is returned back to the equation which then we see p1 is using the assignment operator ```=``` to assign the newly returned _Point_.
+   Point pt3(3);
 
-###Cluster Class
-***
-This class acts as a container of _Points_ resembled in a link list.  The header file of this class is:
-```c++
-namespace Clustering {
-    typedef Point * PointPtr;
+   pt3 = (3 * pt1) + (2 * pt2);
 
-
-    class Cluster {
-        struct Node;
-        typedef struct Node * NodePtr;
-    public:
-        Cluster();
-
-        // The big three
-        Cluster(const Cluster& clust);
-        Cluster &operator=(const Cluster & clust);
-        ~Cluster();
-        
-	Cluster &operator+(const Cluster & rightSide);
-        Cluster &operator-(const Cluster & rightSide);
-        bool operator==(const Cluster & rightSide);
-        Cluster &operator+=(const Cluster & rightSide);
-        Cluster &operator-=(const Cluster & rightSide);
-        Cluster &operator+(Point & point);
-        Cluster &operator-(Point & point);
-
-
-
-
-
-        friend std::ostream &operator<<(std::ostream &, const Cluster &);
-        void add(const PointPtr &pt);
-        const PointPtr remove(const PointPtr pt);
-        int size;
-    private:
-         struct Node {
-            PointPtr pt;
-            NodePtr next;
-        };
-        NodePtr head;
-
-    };
+   // pt3 now equals (9, 14, 19)
+   
+   cout << pt3;
+   // prints 9, 14, 19
+   stringstream someStream;
+   
+   someStream >> pt1;
+   
+   return 0;
 }
 ```
-The main goal of this class was to implement a linked list which was:
+One thing to note here is that when using >> to a point, you are using a string stream. Make sure the point in the stream and the object its self
+have the same dimensions or you will get an error.
+
+### Cluster Class
+***
+
+
+
+This class acts as a container that can hold a list of Point objects in lexicographical order.  Each cluster created will have a unique
+id.  See example below...
+
+_Note: Exposes _PointPtr_ when included, which is a shared pointer of a Point object._
+#### Creating a Cluster Object
 ```c++
-struct Node {
-            PointPtr pt;
-            NodePtr next;
-        };
-        NodePtr head;
+int main() {
+   //Creating a Cluster with dimensions
+   Cluster cl1(3); // id: 1
+   // cl1 will now hold points with three dimensions
+   
+   Cluster cl2(4); // id: 2
+   // cl2 will now hold points with four dimensions 
+   return 0;
+}
 ```
-where ```head``` acts as the first node in the list.  In each node we see that we have a _Point_ pointer ```PointPtr pt``` which will store a memory address of a _Point_ object.
+It is important to understand the relationship between the points and its cluster.  They should be related enough where it is safe to assume
+all points inside each cluster should be of the same dimensions.  If for some reason a cluster will be changed to hold points with different
+dimensions than originally created for see properties section to update the cluster.
+
+### Cluster Centroids
+Each cluster will have a centroid associated with it and can be accessed by _getCentroid_.  See properties section to understand more.
+
+Any operation on a cluster that changes the size will cause the centroid to become _invalid_.
+
+Clusters with invalid centroids can become valid again by calling _computeCentroid_ or _setCentroid_.  See properties for more information
+on _setCentroid_.
+
+As for _computeCentroid_, this will calculate the centroid based upon the points contained in the cluster and set centroid valid to _true_.
+#### Properties of Cluster
+There are many properties that can be accessed to get the state of the Cluster.
+
+##### size of cluster
+_getSize_
+returns the size of the cluster.
+
+##### Centroids
+_checkCentroid_
+returns the value of the validity of the centroid. Can be true or false.
+
+_computeCentroid_: See centroids section to understand more.
+
+_getCentroid_
+returns a point.  Ex. 3, 2, 1
+type: double
+
+_setCentroid_
+Sets a centroid to the following Point object passed in.
+Setting the validity of the centroid to true.
+```c++
+int main() {
+   double arr[3] = {6, 8, 9};
+   Point pt1(3, arr);
+   Cluster cl1(3);
+
+   cl1.setCentroid(pt1);
+   
+   cout << cl1.getCentroid(); // prints 6, 8, 9
+   return 0;
+}
+```
+
+##### point dimensions of cluster
+_getPointDimension_
+returns an unsigned int.
+
+_setPointDimension_
+accepts an unsigned int.
+***
 
 ####Cluster Set Arithmetic
 _arithmetic between two clusters_
@@ -238,7 +256,12 @@ This class was written to preform as follows:
 
 Cluster1 + Cluster2 = (p1, p2, p3, p4, p5)
 
-Otherwise known as the union between two sets.  Likewise, vice versa Cluster1 - Cluster2 would yield _(p1, p2)_.  Or in other words all the points in Cluster1 that are not in Cluster2.
+Otherwise known as the union between two sets.  Likewise, vice versa 
+```c++
+Cluster1 - Cluster2 
+```
+would yield _(p1, p2)_.  Or in other words all the points in Cluster1 that are not in Cluster2.
+
 
 ####Cluster and Point arithmetic
 _arithmetic between a cluster and a point_

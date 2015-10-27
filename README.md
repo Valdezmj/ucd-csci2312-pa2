@@ -1,77 +1,79 @@
-## CSCI 2312: Programming Assignment 2
-####Attempted with smart pointers
-_working with dynamic memory, linked lists, and overloaded operators_
+## CSCI 2312: Programming Assignment 3
+_working with KMeans and clustering points_
 ***
 
-The main goal of this programming assignment was too expand our knowledge on how to maintain dynamic memory, operate with a linked list and overload operators.
+Going from PA2 to PA3 there has been some major changes in how to use the _Cluster_ class as well as the newly created class, _KMeans_.
 
-Starting with the updated _Point_ class, here is the <tt>Point.h</tt> that describes an object in any dimensional Euclidean space:
+As always, starting with the Point class, lets take a look at how one can instantiate a Point object. 
 
+###Creating a Point Object
 ```c++
-class Point {
+int main() {
+   //Creating a point with dimensions
+   Point pt1(3);
+   // pt1 will now be equal to (0, 0, 0)
+   
+   // Creating a point with dimensions and values
+   double ptArray[3] = {1, 2, 3};
+   Point pt2(3, ptArray);
+   // pt2 will now be equal to (1, 2, 3);
+   
+   return 0;
+}
+```
+As you can see starting with the first example, you can instantiate the Point class by simply passing a positive int value in as a parameter creating a point with X dimensions.  In this case, 3 was passed in and the point was initiated at the origin with three dimensions.
 
-    private:
-        double *dimensions;
-        int dim;
+In the second example, the Point object was created by passing in the dimensions of the point as well as including an array of type, _double_, to set the values of each dimensions.  We can see that the second Point, _pt2_, was created to hold three dimensions with the values (1, 2, 3).
 
-    public:
-        // Constructors
-        Point();                                // default constructor
-        Point(int dimensions);                  // dimensions constructor
-        Point(int dimension, double array[]);  // dimensions and array constructor
-        Point(const Point &pt);
+It makes no sense to create a dynamic Point with no starting dimensions or initial values such as:
+```c++
+int main() {
+   // BAD
+   Point badPoint;
 
-        // Mutator method
-        // used for setting values at a specific dimension
-        // for example if you wanted to set the 3rd dimension of (6, 4, 9) of
-        // point p to 6.8 you would write  p.setDimensionValue(3, 6.8);
-        void setDimensionValue(int dimension, double value);
+   // GOOD
+   // Point goodPoint(some dimensions, optional values in an array with type double)
+   return 0;
+}
+```
 
-        // Destructor
-        ~Point();
+### Operations with the Point object(s)
 
-        // Accessor method
-        double getDimensionValue(int dimension) const;
-        int getDims() const;
-        double * getDimensionsAddress() {return dimensions;};
+This Point class can also perform operations with other points as well as do simple arithmetic on its self.
 
-        // function to get a distance to another point
-        double distanceTo(Point &pt);
+#### Adding points together
+```c++
+int main() {
+   double ptArray1[3] = {1, 2, 3};
+   Point pt1(3, ptArray1);
 
-        // Over loaded operators
-        friend std::ostream & operator<<(std::ostream &os, const Point& pt);
+   double ptArray2[3] = {3, 4, 5};
+   Point pt2(3, ptArray2);
 
-        friend bool operator==(const Point &ptLeftSide, const Point &ptRightSide);
+   Point pt3(3);
 
-        friend bool operator!=(const Point &ptLeftSide, const Point &ptRightSide);
+   pt3 = pt1 + pt2;
 
-        friend bool operator<(const Point &ptLeftSide, const Point &ptRightSide);
+   // pt3 now equals (4, 6, 8)
+   return 0;
+}
+```
+#### Subtracting points
+```c++
+int main() {
+   double ptArray1[3] = {1, 2, 3};
+   Point pt1(3, ptArray1);
 
-        friend bool operator<=(const Point &ptLeftSide, const Point &ptRightSide);
+   double ptArray2[3] = {3, 4, 5};
+   Point pt2(3, ptArray2);
+   
+   Point pt3(3);
 
-        friend bool operator>(const Point &ptLeftSide, const Point &ptRightSide);
+   pt3 = pt2 - pt1;
 
-        friend bool operator>=(const Point &ptLeftSide, const Point &ptRightSide);
-
-        Point &operator=(const Point &ptRightSide);
-
-        Point &operator+(const Point &ptRightSide);
-
-        Point &operator-(const Point &ptRightSide);
-
-        Point &operator*(const double numberToMultiplyBy);
-
-        Point &operator/(const double numberToDivideBy);
-
-        Point &operator+=(const Point &ptRightSide);
-
-        Point &operator-=(const Point &ptRightSide);
-
-        Point &operator*=(const double numberToMultiplyBy);
-
-        Point &operator/=(const double numberToDivideBy);
-
-    };
+   // pt3 now equals (2, 2, 2)
+   return 0;
+}
 ```
 One of the main changes between the first assignment and this assignment was changing the _Point_ class to allow an object to be a point in space of any dimension.  Such (1, 2, 3, 4). 
 This required changing the constructors a bit:

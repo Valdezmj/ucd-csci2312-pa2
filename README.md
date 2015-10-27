@@ -60,6 +60,9 @@ int main() {
    return 0;
 }
 ```
+Points being added follow the operation: (w, x, y) + (q, r, s) = (w + q, x + r, y + s)
+_Point objects can also perform +=_
+
 #### Subtracting points
 ```c++
 int main() {
@@ -77,6 +80,72 @@ int main() {
    return 0;
 }
 ```
+Points being subtracted follow the operation: (w, x, y) + (q, r, s) = (w - q, x - r, y - s)
+_Point objects can also perform -=_
+
+#### Multiplying and dividing by a constant
+```c++
+int main() {
+   double ptArray1[3] = {1, 2, 3};
+   Point pt1(3, ptArray1);
+
+   double ptArray2[3] = {3, 4, 5};
+   Point pt2(3, ptArray2);
+  
+   Point pt3(3);
+
+   pt3 = (3 * pt1) + (2 * pt2);
+
+   // pt3 now equals (9, 14, 19)
+
+   pt3 /= 2;    // This is equivalent to pt3 = pt3 / 2;
+
+   // pt3 now equals (4.5, 7, 9.5)
+   return 0;
+}
+```
+Points can be,
+multiplied: a * (x, y, z) = (a * x, a * y, a * z)
+
+divided: (x, y, z) / a = (x / a, y / a, z / a) 
+
+operations also allowed with constants are *=, /=
+
+#### Comparison operators
+```c++
+int main() {
+   double ptArray1[3] = {1, 2, 3};
+   Point pt1(3, ptArray1);
+
+   double ptArray2[3] = {3, 4, 5};
+   Point pt2(3, ptArray2);
+  
+   Point pt3(3);
+
+   pt3 = (3 * pt1) + (2 * pt2);
+
+   // pt3 now equals (9, 14, 19)
+   
+   // True
+   pt3 > pt1;
+   
+   // False
+   pt1 >= pt2;
+   
+   // False
+   pt3 <= pt2;
+   
+   // True
+   pt3 >= (pt1 + pt2)
+   return 0;
+}
+```
+The standard comparisons between points can be applied.  Comparing each dimension of each point with another point.
+
+_Note: if dimensions aren't the same, false will always be returned_
+
+### Cluster Class
+***
 One of the main changes between the first assignment and this assignment was changing the _Point_ class to allow an object to be a point in space of any dimension.  Such (1, 2, 3, 4). 
 This required changing the constructors a bit:
 ```c++

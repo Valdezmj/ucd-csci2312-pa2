@@ -173,9 +173,6 @@ have the same dimensions or you will get an error.
 
 ### Cluster Class
 ***
-
-
-
 This class acts as a container that can hold a list of Point objects in lexicographical order.  Each cluster created will have a unique
 id.  See example below...
 
@@ -196,7 +193,7 @@ It is important to understand the relationship between the points and its cluste
 all points inside each cluster should be of the same dimensions.  If for some reason a cluster will be changed to hold points with different
 dimensions than originally created for see properties section to update the cluster.
 
-### Cluster Centroids
+#### Cluster Centroids
 Each cluster will have a centroid associated with it and can be accessed by _getCentroid_.  See properties section to understand more.
 
 Any operation on a cluster that changes the size will cause the centroid to become _invalid_.

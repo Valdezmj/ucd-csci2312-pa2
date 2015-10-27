@@ -304,9 +304,19 @@ clustOne -= randPt;
 // If clustOne contains many points that are equal in value to randPt, they will all be removed.
 ```
 
+#### Accessing points inside cluster
+When accessing points inside a cluster, use the <tt>[]</tt> operator to access. 
+When using this operator, remember it is in _1 based index_.
+```c++
+for (int i = 0; i < clustOne.getSize(); i++) {
+   cout << clustOne[i];
+}
+
+```
+
 #### Move class (associated  with Cluster)
 _only available when working with clusters_
-
+**
 The Move class allows the ease of moving one PointPtr object from one cluster to another.
 ```c++
 ...
@@ -319,7 +329,20 @@ is currently located and the third parameter takes the address of a Cluster wher
 
 Notice you have to call the _perform()_ function in order for the move to take place!
 
-#### 
+### KMeans Class
+The KMeans class is used to perform the clustering algorithm on a given dataset of points provided from a file.  Once the algorithm is done running, the result is then outputted to a file specified.  See example below...
+```c++
+// Creating KMeans object
+KMeans k(3, .0001, 4, "someFileWithPoints", "file/location/for/result");
+k.start();
+```
+Lets break down what is being passed into that constructor for the KMeans object, _k_.
+The first parameter is the number of clusters you would like to use on the given set of points.
+The second parameter is the threshold at which you would consider the algorithm to be done.  Any KMeans class is _defaulted_ to .001 as a threshold.  _You have to include_ this parameter when creating a KMeans object.
+Third parameter is the point dimension of the file provided.
+Lastly, the remaining two parameters are the file that contains the points data set and the file you want the results outputted to, respectively.
+
+To run the algorithm, call the _start_ function.
 ###Compiler
 Apple LLVM version 6.1.0 (clang-602.0.53)
 

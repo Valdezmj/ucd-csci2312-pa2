@@ -209,6 +209,12 @@ There are many properties that can be accessed to get the state of the Cluster.
 _getSize_
 returns the size of the cluster.
 
+##### adding/removing points to a cluster
+_add_ takes a PointPtr.
+_remove_ takes a PointPtr and returns a PointPtr.
+
+see section below that explains more on adding and removing points to a cluster.
+
 ##### Centroids
 _checkCentroid_
 returns the value of the validity of the centroid. Can be true or false.
@@ -242,10 +248,8 @@ returns an unsigned int.
 _setPointDimension_
 accepts an unsigned int.
 ***
-
-####Cluster Set Arithmetic
+#### Cluster Set Arithmetic
 _arithmetic between two clusters_
-***
 If we were to have two clusters defined as followed:
 Cluster1 = (p1, p2, p3)  && Cluster2 = (p3, p4, p5)
 
@@ -260,15 +264,62 @@ Cluster1 - Cluster2
 would yield _(p1, p2)_.  Or in other words all the points in Cluster1 that are not in Cluster2.
 
 
-####Cluster and Point arithmetic
+#### Cluster and Point arithmetic
 _arithmetic between a cluster and a point_
-***
 The cluster class overloaded multiple functions to allow such arithmetic
 ```c++
+// randomPoint is a PointPtr
 clusterTwo = clusterOne + randomPoint;
 ```
-From the code above we can see that we are returning a Cluster object back to the equation which will contain the result of adding <tt>randomPoint</tt> to <tt>clusterOne</tt> but not actually adding the point to clusterOne.  Then assigning this newly formed cluster to <tt>clusterTwo</tt>.
+From the code above we can see that we are returning a Cluster object back to the equation which will contain the result of adding <tt>PointPtr randomPoint</tt> to <tt>clusterOne</tt> but not actually adding the point to clusterOne.  Then assigning this newly formed cluster to <tt>clusterTwo</tt>.
 
+#### Adding and removing points
+##### Adding
+Using the _add_ function of the cluster will add a PointPtr object to a cluster
+```c++
+// randPt is a PointPtr object
+clustOne.add(randPt);
+```
+You can also use the += operator to add a Point object to a cluster.
+```c++
+// randPt is a Point Object
+clustOne += randPt;
+```
+##### Removing
+_remove_ function will remove a point from the cluster by the <tt>PointPtr</tt> passed in.
+```c++
+// randPt is a PointPtr object
+clustTwo.remove(randPt);
+
+// Acceptable
+clustOne.add(clustTwo.remove(randPt));
+```
+Although it is mentioned in the code above that you can add a <tt>PointPtr</tt> by removing it from another cluster, there is a better way to do this.  See Move class associated within Cluster.
+
+you can also remove all points from a cluster that are equal to a _Point_ object.
+```c++
+// randPt is a Point Object
+clustOne -= randPt;
+
+// If clustOne contains many points that are equal in value to randPt, they will all be removed.
+```
+
+#### Move class (associated  with Cluster)
+_only available when working with clusters_
+
+The Move class allows the ease of moving one PointPtr object from one cluster to another.
+```c++
+...
+// moving randPt from clustOne to clustTwo
+Cluster::Move pointMove(randPt, &clustOne, &clustTwo);
+pointMove.perform();
+```
+Using the example above, the first parameter will be the PointPtr you want to move, the second parameter is the address or <tt>* Cluster</tt> of a Cluster where the PointPtr
+is currently located and the third parameter takes the address of a Cluster where the PointPtr will be moved to.
+
+Notice you have to call the _perform()_ function in order for the move to take place!
+
+#### 
 ###Compiler
 Apple LLVM version 6.1.0 (clang-602.0.53)
 

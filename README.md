@@ -179,7 +179,7 @@ have the same dimensions or you will get an error.
 This class acts as a container that can hold a list of Point objects in lexicographical order.  Each cluster created will have a unique
 id.  See example below...
 
-_Note: Exposes _PointPtr_ when included, which is a shared pointer of a Point object._
+_Note: Exposes a typedef PointPtr when included, which is a shared pointer of a Point object._
 #### Creating a Cluster Object
 ```c++
 int main() {

@@ -10,13 +10,15 @@ namespace Clustering {
 
     private:
         double *dimensions;
-        int dim;
+        unsigned int dim;
 
     public:
+        static const char POINT_VALUE_DELIM;
+
         // Constructors
         Point();                                // default constructor
-        Point(int dimensions);                  // dimensions constructor
-        Point(int dimension, double array[]);  // dimensions and array constructor
+        Point(unsigned int dimensions);                  // dimensions constructor
+        Point(unsigned int dimension, double array[]);  // dimensions and array constructor
         Point(const Point &pt);
 
         // Mutator method
@@ -30,14 +32,15 @@ namespace Clustering {
 
         // Accessor method
         double getDimensionValue(int dimension) const;
-        int getDims() const;
-        double * getDimensionsAddress() {return dimensions;};
+        unsigned int getDims() const;
 
         // function to get a distance to another point
-        double distanceTo(Point &pt);
+        double distanceTo(const Point &pt);
 
         // Over loaded operators
-        friend std::ostream & operator<<(std::ostream &os, const Point& pt);
+        friend std::ostream &operator<<(std::ostream &os, const Point& pt);
+        friend std::stringstream &operator>>(std::stringstream &is, Point& pt);
+
 
         friend bool operator==(const Point &ptLeftSide, const Point &ptRightSide);
 
@@ -50,6 +53,8 @@ namespace Clustering {
         friend bool operator>(const Point &ptLeftSide, const Point &ptRightSide);
 
         friend bool operator>=(const Point &ptLeftSide, const Point &ptRightSide);
+
+        //friend Point &operator[](Point &ptLeftSide,Point &ptRightSide);
 
         Point &operator=(const Point &ptRightSide);
 

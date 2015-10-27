@@ -1,24 +1,29 @@
 #include "Point.h"
 #include <cmath>
+#include <string>
 #include <iostream>
+#include <sstream>
+#include <MacTypes.h>
 
 // Default constructor
 // Initializes dim to 0
 namespace Clustering {
+    const char Point::POINT_VALUE_DELIM = ',';
     Clustering::Point::Point() {
-        dim = 2;
-        dimensions = new double[2];
-        *dimensions = 0;
-        *(dimensions + 1) = 0;
+        dim = 0;
+        dimensions = nullptr;
     }
 
 // Construct a point with a number of dimensions
-    Clustering::Point::Point(int dimension) {
+    Clustering::Point::Point(unsigned int dimension) {
         dim = dimension;
-        dimensions = new double[dimension];
+        dimensions = new double[dim];
+        for (int i = 0; i < dim; i++) {
+            dimensions[i] = 0;
+        }
     }
 
-    Clustering::Point::Point(int numDimensions, double array[]) {
+    Clustering::Point::Point(unsigned int numDimensions, double array[]) {
         dim = numDimensions;
         dimensions = new double[numDimensions];
 
@@ -32,7 +37,7 @@ namespace Clustering {
         dimensions = new double[dim];
 
         for (int i = 0; i < dim; i++) {
-            dimensions[i] = pt.getDimensionValue(i + 1);
+            dimensions[i] = pt.dimensions[i];
         }
     }
 
@@ -48,7 +53,7 @@ namespace Clustering {
 
     void Clustering::Point::setDimensionValue(int dimension, double newValue) {
         if (dimension <= dim) {
-            *(dimensions + dimension - 1) = newValue;
+            dimensions[dimension - 1] = newValue;
         }
     }
 // Accessor
@@ -67,7 +72,7 @@ namespace Clustering {
 // Gets a distance to another point
 // Returns the distance as a double
 
-    double Clustering::Point::distanceTo(Clustering::Point &pt) {
+    double Clustering::Point::distanceTo(const Clustering::Point &pt) {
         if (pt.getDims() > dim) {
             return 0;
         }
@@ -82,15 +87,30 @@ namespace Clustering {
     }
 
     std::ostream &operator<<(std::ostream &os, const Clustering::Point &pt) {
-        os << "(";
         for (int i = 0; i < pt.getDims(); i++) {
-            os << pt.getDimensionValue(i + 1);
+            os << pt.dimensions[i];
             if (i != pt.getDims() - 1) {
                 os << ", ";
             }
         }
-        os << ")";
         return os;
+    }
+
+    std::stringstream &operator>>(std::stringstream &is, Point &pt) {
+        double d;
+        std::string value;
+        std::stringstream formatNum;
+        formatNum.setf(std::ios::fixed);
+
+        int i = 0;
+        while (getline(is, value, pt.POINT_VALUE_DELIM)) {
+            d = std::stod(value);
+            formatNum.precision(1);
+            formatNum << d;
+            formatNum >> d;
+            pt.dimensions[i++] = d;
+        }
+        return is;
     }
 
     bool operator==(const Clustering::Point &ptLeftSide, const Clustering::Point &ptRightSide) {
@@ -143,23 +163,15 @@ namespace Clustering {
         } else if (ptLeftSide.getDims() > ptRightSide.getDims()) {
             return false;
         }
-        bool check = false;
-
         for (int i = 0; i < ptLeftSide.getDims(); i++) {
             if (ptLeftSide.getDimensionValue(i + 1) < ptRightSide.getDimensionValue(i + 1)) {
-                check = true;
-                break;
+                return true;
             } else if (ptLeftSide.getDimensionValue(i + 1) == ptRightSide.getDimensionValue(i + 1)) {
-                if (ptLeftSide.getDimensionValue(i + 2) <= ptRightSide.getDimensionValue(i + 2)) {
-                    check = true;
-                    break;
-                }
             } else {
-                check = false;
-                break;
+                return false;
             }
         }
-        return check;
+        return true;
     }
 
     bool operator>(const Clustering::Point &ptLeftSide, const Clustering::Point &ptRightSide) {
@@ -168,14 +180,16 @@ namespace Clustering {
         } else if (ptLeftSide.getDims() > ptRightSide.getDims()) {
             return true;
         }
-        bool check = false;
-
         for (int i = 0; i < ptLeftSide.getDims(); i++) {
             if (ptLeftSide.getDimensionValue(i + 1) > ptRightSide.getDimensionValue(i + 1)) {
-                check = true;
+                return true;
+            } else if (ptLeftSide.getDimensionValue(i + 1) == ptRightSide.getDimensionValue(i + 1)) {
+                return false;
+            } else {
+                return false;
             }
         }
-        return check;
+        return true;
     }
 
     bool operator>=(const Clustering::Point &ptLeftSide, const Clustering::Point &ptRightSide) {
@@ -184,23 +198,15 @@ namespace Clustering {
         } else if (ptLeftSide.getDims() > ptRightSide.getDims()) {
             return true;
         }
-        bool check = false;
-
         for (int i = 0; i < ptLeftSide.getDims(); i++) {
             if (ptLeftSide.getDimensionValue(i + 1) > ptRightSide.getDimensionValue(i + 1)) {
-                check = true;
-                break;
+                return true;
             } else if (ptLeftSide.getDimensionValue(i + 1) == ptRightSide.getDimensionValue(i + 1)) {
-                if (ptLeftSide.getDimensionValue(i + 2) >= ptRightSide.getDimensionValue(i + 2)) {
-                    check = true;
-                    break;
-                }
             } else {
-                check = false;
-                break;
+                return false;
             }
         }
-        return check;
+        return true;
     }
 
     Clustering::Point &Clustering::Point::operator=(const Point &ptRightSide) {
@@ -290,7 +296,7 @@ namespace Clustering {
         }
 
         for (int i = 0; i < dim; i++) {
-            this->dimensions[i] = this->dimensions[i] + ptRightSide.getDimensionValue(i + 1);
+            this->dimensions[i] = this->dimensions[i] + ptRightSide.dimensions[i];
         }
         return *this;
     }
@@ -339,7 +345,7 @@ namespace Clustering {
         return *this;
     }
 
-    int Clustering::Point::getDims() const {
+    unsigned int Clustering::Point::getDims() const {
         return dim;
     }
 }

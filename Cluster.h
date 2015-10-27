@@ -2,22 +2,29 @@
 // Created by Michael Valdez on 9/19/15.
 //
 
+// Notes.
+// Pass in the point dimensions to cluster in constructors.
+
 #ifndef PA2_CLUSTER_H
 #define PA2_CLUSTER_H
 #include "Point.h"
 #include <memory>
 
 namespace Clustering {
-    typedef Point *PointPtr;
-
+    typedef std::shared_ptr<Point> PointPtr;
 
     class Cluster {
         struct Node;
-        typedef struct Node *NodePtr;
+        typedef Node *NodePtr;
     public:
-        Cluster();
+        static const char POINT_CLUSTER_ID_DELIM;
 
-        // The big three: cpy ctor, overloaded operator=, dtor
+        Cluster();
+        Cluster(PointPtr &);
+        Cluster(unsigned int);
+
+
+        // The big three: cpy constructor, overloaded operator=, dtor
         Cluster(const Cluster &);
 
         Cluster &operator=(const Cluster &);
@@ -50,7 +57,6 @@ namespace Clustering {
         Cluster &operator+=(const Cluster &rhs); // union
         Cluster &operator-=(const Cluster &rhs); // (asymmetric) difference
 
-        // - Friends
         const Cluster operator+(const Cluster &rhs);
 
         const Cluster operator-(const Cluster &rhs);
@@ -59,34 +65,56 @@ namespace Clustering {
 
         const Cluster operator-(const PointPtr &rhs);
 
-        void check(const PointPtr &rhs) {
-            if (head->pt.get() == rhs) {
-                std::cout << "Point: " << *head->pt;
-                std::cout << "We have a match of points with the same memory address\n";
-            }
-        }
+        PointPtr &operator[] (int);
 
-        int size;
+        // - Getters
+        const Point getCentroid();
+        void setCentroid(const Point & __p)  {__centroid = PointPtr(new Point(__p));__centroidValid = true;}
+        void computeCentroid();
+        const bool checkCentroid() {return __centroidValid;}
+        unsigned int getSize() {return size;}
+        void setPointDimension(unsigned int x) {pointDimensions = x;}
+        unsigned int getPointDimension() {return pointDimensions;}
+
+        void pickPoints(int k, PointPtr *&);
+
+        double intraClusterDistance() const;
+        friend double interClusterDistance(const Cluster &, const Cluster &);
+        int getClusterEdges() {return (size * (size- 1) / 2);}
+
+
+        class Move {
+            PointPtr __pt;
+            Cluster * __to;
+            Cluster * __from;
+        public:
+            Move(const PointPtr a,Cluster *b, Cluster *c) : __pt(a), __to(c), __from(b) {}
+            void perform() {__to->add(__from->remove(__pt));}
+        };
+
+
     private:
-        typedef std::shared_ptr<Point> smartPointPtr;
+        unsigned int size;
+        bool __centroidValid;
+        PointPtr __centroid;
+        unsigned int pointDimensions;
+
+        static unsigned int __idGenerator;
+        unsigned int __id;
 
         struct Node {
-            smartPointPtr pt;
+            PointPtr pt;
             NodePtr next;
 
             Node() : pt(nullptr), next(nullptr) { }
 
-            Node(smartPointPtr newPt) : pt(newPt), next(nullptr) { }
+            Node(PointPtr newPt) : pt(newPt), next(nullptr) { }
+            Node(PointPtr __np, NodePtr __n) : pt(__np), next(__n) { }
         };
 
         NodePtr head;
 
-        // Custom deleter for the shared smart pointer
-        struct Release {
-            void operator()(PointPtr p) {
-                // Meant to be empty
-            }
-        };
+        void clearList();
     };
 }
 #endif //PA2_CLUSTER_H
